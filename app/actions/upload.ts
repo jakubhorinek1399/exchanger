@@ -79,10 +79,14 @@ export async function uploadShare(formData: FormData): Promise<UploadResult> {
         // Get MIME type
         const mimeType = file.type || 'application/octet-stream'
 
+        // Generate stored filename from storage path
+        const storedFilename = storagePath.split('/').pop() || file.name
+
         // Create file record
         const { error: fileError } = await supabase.from('files').insert({
           share_id: shareId,
-          filename: file.name,
+          filename: storedFilename,
+          original_filename: file.name,
           storage_path: storagePath,
           size_bytes: file.size,
           mime_type: mimeType,

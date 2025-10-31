@@ -6,6 +6,7 @@ import { verifyPassword } from '@/app/actions/verify'
 interface File {
   id: string
   filename: string
+  original_filename: string
   storage_path: string
   size_bytes: number
   mime_type: string
@@ -187,7 +188,7 @@ export default function ContentView({ shareId, share, hasPassword }: ContentView
                     </svg>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-900 truncate">
-                        {file.filename}
+                        {file.original_filename}
                       </p>
                       <p className="text-xs text-gray-500">
                         {formatFileSize(file.size_bytes)}
@@ -197,7 +198,7 @@ export default function ContentView({ shareId, share, hasPassword }: ContentView
 
                   <a
                     href={getFileDownloadUrl(file.storage_path)}
-                    download={file.filename}
+                    download={file.original_filename}
                     className="ml-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center gap-2 flex-shrink-0"
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
