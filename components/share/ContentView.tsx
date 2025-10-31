@@ -38,7 +38,9 @@ export default function ContentView({ shareId, share, hasPassword }: ContentView
   useEffect(() => {
     const updateTime = () => {
       const now = new Date()
-      const expires = new Date(share.expires_at)
+      // Fix timezone issue - ensure UTC parsing
+      const expiresAtString = share.expires_at.endsWith('Z') ? share.expires_at : share.expires_at + 'Z'
+      const expires = new Date(expiresAtString)
       const diff = expires.getTime() - now.getTime()
 
       if (diff <= 0) {

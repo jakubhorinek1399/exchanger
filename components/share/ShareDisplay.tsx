@@ -27,7 +27,9 @@ export default function ShareDisplay({
   useEffect(() => {
     const updateTime = () => {
       const now = new Date()
-      const expires = new Date(expiresAt)
+      // Fix timezone issue - ensure UTC parsing
+      const expiresAtString = expiresAt.endsWith('Z') ? expiresAt : expiresAt + 'Z'
+      const expires = new Date(expiresAtString)
       const diff = expires.getTime() - now.getTime()
 
       if (diff <= 0) {
@@ -123,7 +125,7 @@ export default function ShareDisplay({
                 type="text"
                 value={shareUrl}
                 readOnly
-                className="flex-1 px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg font-mono text-sm"
+                className="flex-1 px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg font-mono text-sm text-gray-900"
               />
               <button
                 onClick={copyToClipboard}
