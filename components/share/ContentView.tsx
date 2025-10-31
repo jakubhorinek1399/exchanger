@@ -92,9 +92,10 @@ export default function ContentView({ shareId, share, hasPassword }: ContentView
     return (bytes / (1024 * 1024)).toFixed(1) + ' MB'
   }
 
-  const getFileDownloadUrl = (storagePath: string) => {
+  const getFileDownloadUrl = (storagePath: string, filename: string) => {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    return `${supabaseUrl}/storage/v1/object/public/shares/${storagePath}`
+    // Add download query parameter to force download instead of opening in browser
+    return `${supabaseUrl}/storage/v1/object/public/shares/${storagePath}?download=${encodeURIComponent(filename)}`
   }
 
   // Show password form if locked
@@ -199,8 +200,7 @@ export default function ContentView({ shareId, share, hasPassword }: ContentView
                   </div>
 
                   <a
-                    href={getFileDownloadUrl(file.storage_path)}
-                    download={file.original_filename}
+                    href={getFileDownloadUrl(file.storage_path, file.original_filename)}
                     className="ml-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center gap-2 flex-shrink-0"
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
