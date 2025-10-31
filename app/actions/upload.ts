@@ -29,8 +29,11 @@ export async function uploadShare(formData: FormData): Promise<UploadResult> {
     const expiresAt = new Date()
     expiresAt.setMinutes(expiresAt.getMinutes() + expirationMinutes)
 
-    // Generate unique share ID
-    const shareId = nanoid(10) // 10 characters, URL-safe
+    // Generate unique share ID (alphanumeric only)
+    const alphabet = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
+    const { customAlphabet } = await import('nanoid')
+    const nanoidCustom = customAlphabet(alphabet, 10)
+    const shareId = nanoidCustom() // 10 characters, alphanumeric only
 
     // Hash password if provided
     let passwordHash: string | null = null
@@ -44,7 +47,12 @@ export async function uploadShare(formData: FormData): Promise<UploadResult> {
       text_content: textContent || null,
       password_hash: passwordHash,
       expires_at: expiresAt.toISOString(),
+      expiration_minutes: expirationMinutes,
       burn_after_reading: false,
+      is_active: true,
+      is_deleted: false,
+      file_count: files.length,
+      total_size_bytes: files.reduce((acc, f) => acc + f.size, 0),
     })
 
     if (shareError) {
