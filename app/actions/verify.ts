@@ -1,6 +1,6 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from '@supabase/supabase-js'
 import bcrypt from 'bcryptjs'
 
 interface VerifyResult {
@@ -13,7 +13,17 @@ export async function verifyPassword(
   password: string
 ): Promise<VerifyResult> {
   try {
-    const supabase = await createClient()
+    // Use service role to bypass RLS
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
+    )
 
     // Fetch share
     const { data: share, error } = await supabase

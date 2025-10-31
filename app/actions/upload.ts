@@ -1,6 +1,7 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { createClient as createServerClient } from '@/lib/supabase/server'
+import { createClient } from '@supabase/supabase-js'
 import { nanoid } from 'nanoid'
 import bcrypt from 'bcryptjs'
 
@@ -12,7 +13,17 @@ interface UploadResult {
 
 export async function uploadShare(formData: FormData): Promise<UploadResult> {
   try {
-    const supabase = await createClient()
+    // Use service role key to bypass RLS for uploads
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
+    )
 
     // Extract form data
     const files = formData.getAll('files') as File[]
@@ -42,7 +53,7 @@ export async function uploadShare(formData: FormData): Promise<UploadResult> {
     }
 
     // Create share record
-    const { error: shareError } = await supabase.from('shares').insert({
+    const shareData = {
       id: shareId,
       text_content: textContent || null,
       password_hash: passwordHash,
@@ -53,12 +64,17 @@ export async function uploadShare(formData: FormData): Promise<UploadResult> {
       is_deleted: false,
       file_count: files.length,
       total_size_bytes: files.reduce((acc, f) => acc + f.size, 0),
-    })
+    }
+
+    console.log('Creating share with data:', shareData)
+    const { data: createdShare, error: shareError } = await supabase.from('shares').insert(shareData).select().single()
 
     if (shareError) {
       console.error('Error creating share:', shareError)
       return { success: false, error: 'Failed to create share' }
     }
+
+    console.log('Share created successfully:', createdShare)
 
     // Upload files to storage and create file records
     if (files.length > 0) {

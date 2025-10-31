@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from '@supabase/supabase-js'
 import ContentView from '@/components/share/ContentView'
 
 interface ViewPageProps {
@@ -8,7 +8,18 @@ interface ViewPageProps {
 
 export default async function ViewPage({ params }: ViewPageProps) {
   const { id } = await params
-  const supabase = await createClient()
+
+  // Use service role to bypass RLS and read shares
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    }
+  )
 
   // Fetch share details
   const { data: share, error } = await supabase

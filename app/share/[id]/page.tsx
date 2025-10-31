@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from '@supabase/supabase-js'
 import ShareDisplay from '@/components/share/ShareDisplay'
 
 interface SharePageProps {
@@ -8,7 +8,18 @@ interface SharePageProps {
 
 export default async function SharePage({ params }: SharePageProps) {
   const { id } = await params
-  const supabase = await createClient()
+
+  // Use service role to bypass RLS and read shares
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    }
+  )
 
   // Fetch share details
   const { data: share, error } = await supabase
@@ -16,6 +27,11 @@ export default async function SharePage({ params }: SharePageProps) {
     .select('*, files(*)')
     .eq('id', id)
     .single()
+
+  if (error) {
+    console.error('Error fetching share:', error)
+    console.error('Share ID:', id)
+  }
 
   if (error || !share) {
     notFound()
