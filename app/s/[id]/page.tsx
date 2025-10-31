@@ -32,8 +32,9 @@ export default async function ViewPage({ params }: ViewPageProps) {
     notFound()
   }
 
-  // Check if expired
-  const expiresAt = new Date(share.expires_at)
+  // Check if expired - add Z if missing to ensure UTC parsing
+  const expiresAtString = share.expires_at.endsWith('Z') ? share.expires_at : share.expires_at + 'Z'
+  const expiresAt = new Date(expiresAtString)
   const now = new Date()
   if (expiresAt < now) {
     // Delete expired share

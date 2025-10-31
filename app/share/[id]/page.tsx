@@ -22,25 +22,33 @@ export default async function SharePage({ params }: SharePageProps) {
   )
 
   // Fetch share details
+  console.log('Fetching share with ID:', id)
   const { data: share, error } = await supabase
     .from('shares')
     .select('*, files(*)')
     .eq('id', id)
     .single()
 
+  console.log('Share fetch result:', { share: !!share, error: !!error, shareData: share })
+
   if (error) {
     console.error('Error fetching share:', error)
     console.error('Share ID:', id)
-  }
-
-  if (error || !share) {
     notFound()
   }
 
-  // Check if expired
-  const expiresAt = new Date(share.expires_at)
+  if (!share) {
+    console.error('Share not found:', id)
+    notFound()
+  }
+
+  // Check if expired - add Z if missing to ensure UTC parsing
+  const expiresAtString = share.expires_at.endsWith('Z') ? share.expires_at : share.expires_at + 'Z'
+  const expiresAt = new Date(expiresAtString)
   const now = new Date()
+  console.log('Expiration check:', { expiresAtString, expiresAt, now, expired: expiresAt < now })
   if (expiresAt < now) {
+    console.log('Share expired, showing 404')
     notFound()
   }
 
